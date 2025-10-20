@@ -1,32 +1,36 @@
 {
   "expo": {
     "name": "EventPass",
-    "slug": "EventPass",
+    "slug": "eventpass",
+    "scheme": "eventpass",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#0f172a" },
+    "updates": { "fallbackToCacheTimeout": 0 },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necesitamos usar la cámara para tomar fotos y escanear códigos QR.",
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrar cómo llegar a los eventos."
+      },
+      "config": {
+        "googleMapsApiKey": "IOS_GOOGLE_MAPS_API_KEY_AQUI"
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
+      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "package": "com.eventpass.app",
+      "config": {
+        "googleMaps": { "apiKey": "ANDROID_GOOGLE_MAPS_API_KEY_AQUI" }
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro"
     },
-    "plugins": [
-      "expo-barcode-scanner"
-    ]
+    "extra": {
+      "eas": { "projectId": "RELLENAR_SI_USAN_EAS" }
+    }
   }
 }

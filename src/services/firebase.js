@@ -5,12 +5,12 @@ import { getStorage } from 'firebase/storage';
 
 
 const firebaseConfig = {
-  apiKey: 'TU_API_KEY',
-  authDomain: 'TU_AUTH_DOMAIN',
-  projectId: 'TU_PROJECT_ID',
-  storageBucket: 'TU_STORAGE_BUCKET',
-  messagingSenderId: 'TU_SENDER_ID',
-  appId: 'TU_APP_ID'
+  apiKey: "AIzaSyANU0RJDGKAwLs0U-SK1mqfFwv4iCgmD3I",
+  authDomain: "tp-dai-538ed.firebaseapp.com",
+  projectId: "tp-dai-538ed",
+  storageBucket: "tp-dai-538ed.firebasestorage.app",
+  messagingSenderId: "667300719487",
+  appId: "1:667300719487:web:2817f53fc66f18cae8084a"
 };
 
 const app = initializeApp(firebaseConfig);

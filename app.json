@@ -6,9 +6,17 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#0f172a" },
-    "updates": { "fallbackToCacheTimeout": 0 },
-    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -20,17 +28,25 @@
       }
     },
     "android": {
-      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "package": "com.eventpass.app",
       "config": {
-        "googleMaps": { "apiKey": "ANDROID_GOOGLE_MAPS_API_KEY_AQUI" }
+        "googleMaps": {
+          "apiKey": "ANDROID_GOOGLE_MAPS_API_KEY_AQUI"
+        }
       }
     },
     "web": {
       "bundler": "metro"
     },
     "extra": {
-      "eas": { "projectId": "RELLENAR_SI_USAN_EAS" }
+      "eas": {
+        "projectId": "RELLENAR_SI_USAN_EAS"
+      }
     }
   }
 }

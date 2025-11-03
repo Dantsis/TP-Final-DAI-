@@ -1,105 +1,170 @@
+
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Alert, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, Alert, Image, ScrollView } from 'react-native';
 import colors from '../theme/colors';
 import spacing from '../theme/spacing';
 import PrimaryButton from '../components/PrimaryButton';
-import { createEvent, getEvent, updateEvent } from '../services/events';
-import * as ImagePicker from 'expo-image-picker';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../services/firebase';
+import { createEvent, updateEvent, getEvent } from '../services/events';
+import PlacesInput from '../components/PlacesInput';
 
 export default function EventFormScreen({ route, navigation }) {
-  const id = route?.params?.id;
+  const id = route.params?.id || null;
+
   const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
+  const [description, setDescription] = useState('');
   const [venueName, setVenueName] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [posterUrl, setPosterUrl] = useState('');
+  const [venueAddress, setVenueAddress] = useState('');
+  const [placeId, setPlaceId] = useState(null);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [posterUri, setPosterUri] = useState(null);
+  const [existingPosterUrl, setExistingPosterUrl] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
-      if (id) {
-        const e = await getEvent(id);
-        setTitle(e.title || '');
-        setDesc(e.description || '');
-        setVenueName(e.venue?.name || '');
-        setLat(e.venue?.lat?.toString?.() || '');
-        setLng(e.venue?.lng?.toString?.() || '');
-        setPosterUrl(e.posterUrl || '');
+      if (!id) return;
+      try {
+        const ev = await getEvent(id);
+        setTitle(ev.title || '');
+        setDescription(ev.description || '');
+        setVenueName(ev.venue?.name || '');
+        setVenueAddress(ev.venue?.address || '');
+        setPlaceId(ev.venue?.placeId || null);
+        setLat(ev.lat ?? null);
+        setLng(ev.lng ?? null);
+        setExistingPosterUrl(ev.posterUrl || null);
+      } catch (e) {
+        Alert.alert('Error', String(e.message || e));
       }
     })();
   }, [id]);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return Alert.alert('Permiso requerido', 'Habilita el acceso a fotos.');
-    const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
-    if (!res.canceled) {
-      const asset = res.assets[0];
-      const blob = await (await fetch(asset.uri)).blob();
-      const storageRef = ref(storage, `posters/${Date.now()}-${asset.fileName || 'img'}.jpg`);
-      await uploadBytes(storageRef, blob);
-      const url = await getDownloadURL(storageRef);
-      setPosterUrl(url);
-    }
-  };
+  const onSave = async () => {
+    try {
+      if (!title.trim()) {
+        Alert.alert('Falta título', 'El título es obligatorio.');
+        return;
+      }
+      if (!(lat != null && lng != null)) {
+        Alert.alert('Ubicación', 'Elegí una dirección de la lista para fijar el lugar.');
+        return;
+      }
 
-  const save = async () => {
-    if (!title.trim()) return Alert.alert('Falta título', 'Escribe un título.');
-    const payload = {
-      title: title.trim(),
-      description: desc.trim(),
-      venue: {
-        name: venueName.trim(),
-        lat: lat ? Number(lat) : null,
-        lng: lng ? Number(lng) : null,
-        address: ''
-      },
-      posterUrl
-    };
-    if (id) {
-      await updateEvent(id, payload);
-    } else {
-      const newId = await createEvent(payload);
-      navigation.replace('DetalleEvento', { id: newId });
-      return;
+      setSaving(true);
+
+      const data = {
+        title,
+        description,
+        venue: venueName ? { name: venueName, address: venueAddress, placeId } : null,
+        lat,
+        lng,
+        posterUri,
+        posterUrl: existingPosterUrl,
+      };
+
+      if (id) {
+        await updateEvent(id, data);
+        Alert.alert('Guardado', 'Evento actualizado.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        const newId = await createEvent(data);
+        Alert.alert('Guardado', 'Evento creado.', [
+          { text: 'Ver detalle', onPress: () => navigation.replace('DetalleEvento', { id: newId }) },
+          { text: 'OK' },
+        ]);
+      }
+    } catch (e) {
+      Alert.alert('Error al guardar', String(e.message || e));
+    } finally {
+      setSaving(false);
     }
-    navigation.goBack();
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md }}>
-      <Text style={{ color: colors.text, marginBottom: 6 }}>Título</Text>
-      <TextInput value={title} onChangeText={setTitle}
-        style={{ backgroundColor: '#111827', color: colors.text, padding: 12, borderRadius: 10 }} />
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bg, padding: spacing.md }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={{ color: colors.text, fontSize: 18, marginBottom: spacing.sm }}>
+        {id ? 'Editar evento' : 'Nuevo evento'}
+      </Text>
 
-      <View style={{ height: spacing.md }} />
-      <Text style={{ color: colors.text, marginBottom: 6 }}>Descripción</Text>
-      <TextInput value={desc} onChangeText={setDesc} multiline
-        style={{ backgroundColor: '#111827', color: colors.text, padding: 12, borderRadius: 10, minHeight: 80 }} />
+      {}
+      <Text style={{ color: colors.text }}>Título</Text>
+      <TextInput
+        style={{
+          backgroundColor: '#111827',
+          color: '#fff',
+          padding: 10,
+          borderRadius: 8,
+          marginBottom: spacing.md,
+        }}
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Ej: MeetUp React"
+        placeholderTextColor="#6b7280"
+      />
 
-      <View style={{ height: spacing.md }} />
-      <Text style={{ color: colors.text, marginBottom: 6 }}>Lugar (nombre)</Text>
-      <TextInput value={venueName} onChangeText={setVenueName}
-        style={{ backgroundColor: '#111827', color: colors.text, padding: 12, borderRadius: 10 }} />
+      {}
+      <Text style={{ color: colors.text }}>Descripción</Text>
+      <TextInput
+        style={{
+          backgroundColor: '#111827',
+          color: '#fff',
+          padding: 10,
+          borderRadius: 8,
+          marginBottom: spacing.md,
+        }}
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Detalles"
+        placeholderTextColor="#6b7280"
+        multiline
+      />
 
-      <View style={{ height: spacing.md }} />
-      <Text style={{ color: colors.text, marginBottom: 6 }}>Latitud</Text>
-      <TextInput value={lat} onChangeText={setLat} keyboardType="decimal-pad"
-        style={{ backgroundColor: '#111827', color: colors.text, padding: 12, borderRadius: 10 }} />
+      {}
+      <Text style={{ color: colors.text, marginBottom: 6 }}>
+        Lugar (buscá por dirección o nombre)
+      </Text>
+      <PlacesInput
+        country="ar" 
+        onPlacePicked={({ name, address, lat: la, lng: ln, placeId: pid }) => {
+          setVenueName(name || '');
+          setVenueAddress(address || '');
+          setLat(la);
+          setLng(ln);
+          setPlaceId(pid || null);
+        }}
+      />
+      {venueAddress ? (
+        <Text style={{ color: colors.mutted, marginTop: 8 }}>📍 {venueAddress}</Text>
+      ) : null}
 
-      <View style={{ height: spacing.md }} />
-      <Text style={{ color: colors.text, marginBottom: 6 }}>Longitud</Text>
-      <TextInput value={lng} onChangeText={setLng} keyboardType="decimal-pad"
-        style={{ backgroundColor: '#111827', color: colors.text, padding: 12, borderRadius: 10 }} />
+      {}
+      {posterUri || existingPosterUrl ? (
+        <Image
+          source={{ uri: posterUri || existingPosterUrl }}
+          style={{
+            width: '100%',
+            height: 200,
+            borderRadius: 12,
+            marginTop: spacing.md,
+            marginBottom: spacing.md,
+          }}
+        />
+      ) : null}
 
-      <View style={{ height: spacing.md }} />
-      <PrimaryButton title={posterUrl ? 'Cambiar póster' : 'Subir póster'} onPress={pickImage} />
-      {posterUrl ? <Image source={{ uri: posterUrl }} style={{ height: 160, borderRadius: 10, marginTop: spacing.sm }} /> : null}
+      {}
+      <PrimaryButton
+        title={saving ? 'Guardando...' : 'Guardar'}
+        onPress={onSave}
+        disabled={saving}
+      />
 
       <View style={{ height: spacing.lg }} />
-      <PrimaryButton title="Guardar" onPress={save} />
     </ScrollView>
   );
 }
+

@@ -10,20 +10,55 @@ export default function EventDetailScreen({ route, navigation }) {
   const [item, setItem] = useState(null);
 
   useEffect(() => {
-    (async () => { setItem(await getEvent(id)); })();
+    (async () => {
+      setItem(await getEvent(id));
+    })();
   }, [id]);
 
-  if (!item) return <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-    <ActivityIndicator color="#fff" />
-  </View>;
+  if (!item) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, padding: spacing.md }}>
-      <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700' }}>{item.title}</Text>
-      <Text style={{ color: colors.mutted, marginTop: 8 }}>{item.description || 'Sin descripción'}</Text>
-      {item.venue?.name ? <Text style={{ color: colors.mutted, marginTop: 8 }}>📍 {item.venue.name}</Text> : null}
+      <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700' }}>
+        {item.title}
+      </Text>
+      <Text style={{ color: colors.mutted, marginTop: 8 }}>
+        {item.description || 'Sin descripción'}
+      </Text>
+      {item.venue?.name ? (
+        <Text style={{ color: colors.mutted, marginTop: 8 }}>
+          📍 {item.venue.name}
+        </Text>
+      ) : null}
+
       <View style={{ height: spacing.lg }} />
-      <PrimaryButton title="Editar" onPress={() => navigation.navigate('FormEvento', { id })} />
+
+      <PrimaryButton
+        title="Editar"
+        onPress={() => navigation.navigate('FormEvento', { id })}
+      />
+
+      <View style={{ height: spacing.md }} />
+
+      {}
+      <PrimaryButton
+        title="Mi Ticket (QR)"
+        onPress={() => navigation.navigate('Ticket', { eventId: id })}
+      />
     </View>
   );
 }
+

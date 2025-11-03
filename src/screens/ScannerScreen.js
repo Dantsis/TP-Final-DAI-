@@ -5,6 +5,7 @@ import QRFrame from '../components/QRFrame';
 import colors from '../theme/colors';
 import spacing from '../theme/spacing';
 import { parseTicketData } from '../services/tickets';
+import { consumeTicket, getTicket } from '../services/tickets';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -18,14 +19,25 @@ export default function ScannerScreen() {
     })();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    if (scanned) return;
-    setScanned(true);
-    const parsed = parseTicketData(data);
-    Alert.alert('QR leído', JSON.stringify({ type, parsed }, null, 2), [
+const handleBarCodeScanned = async ({ type, data }) => {
+  if (scanned) return;
+  setScanned(true);
+
+  try {
+    const ticketId = String(data).trim();
+    const tk = await getTicket(ticketId); 
+    await consumeTicket(ticketId);        
+    Alert.alert(
+      '✅ Ticket válido',
+      `Evento: ${tk.eventId}\nTicket: ${ticketId}\nEstado: CONSUMIDO`,
+      [{ text: 'OK', onPress: () => setScanned(false) }]
+    );
+  } catch (e) {
+    Alert.alert('⛔ Ticket inválido', String(e.message || e), [
       { text: 'OK', onPress: () => setScanned(false) }
     ]);
-  };
+  }
+};
 
   if (!permission) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   if (!permission.granted) {

@@ -1,11 +1,11 @@
 import { auth } from './firebase';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 
-let _readyPromise;
+let ready;
 
 export function ensureAnonAuth() {
-  if (_readyPromise) return _readyPromise;
-  _readyPromise = new Promise((resolve, reject) => {
+  if (ready) return ready;
+  ready = new Promise((resolve, reject) => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       try {
         if (!user) await signInAnonymously(auth);
@@ -17,5 +17,5 @@ export function ensureAnonAuth() {
       }
     });
   });
-  return _readyPromise;
+  return ready;
 }
